@@ -1,4 +1,3 @@
-import argparse
 import datetime
 import random
 from influxdb import InfluxDBClient
@@ -10,14 +9,15 @@ def connect(user, pwd, dbname, host='localhost', port=8086):
     return client
 
 
-def create_db(client, dbname, rpname, rp):
+def create_db(client, dbname, rpname="", rp=None):
     # Create database
     print("Create database: {}".format(dbname))
     client.create_database(dbname)
 
-    # Create a 3 days retention policy
-    print("Create a retention policy")
-    client.create_retention_policy(rpname, rp, 3, default=True)
+    # Create a retention policy
+    if rp:
+        print("Create a retention policy")
+        client.create_retention_policy(rpname, rp, 3, default=True)
 
 
 def delete_database(client, dbname):
@@ -28,6 +28,12 @@ def delete_database(client, dbname):
 
 
 def insert_data(client, metric, retention_policy, protocol):
+    """
+    Insertion de 10000 mesures dans la base de données.
+
+    Il s'agit de 5000 mesures température dont la variation est tirée
+    aléatoirement.
+    """
     now = datetime.datetime.today()
     timeinterval_sec = 15
     total_records = 5000
@@ -68,6 +74,9 @@ def insert_data(client, metric, retention_policy, protocol):
 
 
 def count_data(client, metric):
+    """
+    Compter les mesures dans une série
+    """
     query = 'select count(*) from {}'.format(metric)
 
     result = client.query(query)
@@ -75,6 +84,9 @@ def count_data(client, metric):
 
 
 def select_data(client, metric):
+    """
+    Sélectionner les valeurs de mesures dans une série
+    """
     query = 'select value from {}'.format(metric)
 
     result = client.query(query)
@@ -84,6 +96,9 @@ def select_data(client, metric):
 
 
 def select(client, query):
+    """
+    Exécuter une requête InfluxQL sur une base
+    """
     result = client.query(query)
     for res in result:
         print("Results : ")
@@ -91,18 +106,7 @@ def select(client, query):
             print(r)
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='example code to play with InfluxDB')
-    parser.add_argument('--host', type=str, required=False, default='localhost',
-                        help='hostname of InfluxDB http API')
-    parser.add_argument('--port', type=int, required=False, default=8086,
-                        help='port of InfluxDB http API')
-    return parser.parse_args()
-
-
 if __name__ == '__main__':
-    # args = parse_args()
     user = 'root'
     pwd = 'root'
     dbname = 'example'
