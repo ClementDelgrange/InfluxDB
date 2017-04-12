@@ -1,2 +1,2 @@
 # InfluxDB
-test influxdb
+tests influxdb
