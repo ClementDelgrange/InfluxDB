@@ -31,8 +31,8 @@ def insert_data(client, metric, retention_policy, protocol):
     """
     Insertion de 10000 mesures dans la base de données.
 
-    Il s'agit de 5000 mesures température dont la variation est tirée
-    aléatoirement.
+    Il s'agit de 5000 mesures température dans 2 pièces et dont la variation
+    est tirée aléatoirement.
     """
     now = datetime.datetime.today()
     timeinterval_sec = 15
@@ -99,11 +99,15 @@ def select(client, query):
     """
     Exécuter une requête InfluxQL sur une base
     """
-    result = client.query(query)
-    for res in result:
-        print("Results : ")
-        for r in res:
-            print(r)
+    try:
+        result = client.query(query)
+    except InfluxDBClientError as e:
+        print(e)
+    else:
+        for res in result:
+            print("Results : ")
+            for r in res:
+                print(r)
 
 
 if __name__ == '__main__':
@@ -121,6 +125,8 @@ if __name__ == '__main__':
     # insert_data(client, metric, retention_policy, protocol)
     # count_data(client, metric)
     # select_data(client, metric)
+
+    # req = 'select piece, value from temperatures'
     req = ('select mean(value) from temperatures '
            'where time < now() group by time(30m)')
     select(client, req)
